@@ -1,6 +1,6 @@
 # ailib - Agent Interruption Hook Library
 
-[![Python CI](https://github.com/diego/ailib/actions/workflows/python-ci.yml/badge.svg)](https://github.com/diego/ailib/actions/workflows/python-ci.yml)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
 
