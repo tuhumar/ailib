@@ -1,32 +1,61 @@
 # ailib - Agent Interruption Hook Library
 
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
 
-`ailib` is an advanced Python library designed to allow scripts executed by AI Agents (like Gemini, GPT, Claude) to request actions or decisions directly from the host agent during execution.
+`ailib` is a small Python library that enables scripts executed by AI agents to pause execution and request decisions or inputs from the host agent (e.g., Gemini, GPT, Claude).
 
-Unlike standard API calls, `ailib` pauses script execution so that the executing AI can provide the necessary input to proceed.
+It is designed to work in setups where the “agent executor” can read special request markers and then provide a response back to the running script.
 
 ---
 
-## 🚀 Installation
+## ✅ Installation (Local / Development)
+
+> **Note:** `ailib` is not yet published on PyPI. The recommended way to use it is by installing it from the repository.
+
+### 1) Create and activate a virtual environment
 
 ```bash
-pip install ailib
+python -m venv .venv
+source .venv/bin/activate
 ```
 
-Or install locally for development:
+> On Windows (PowerShell):
+> ```powershell
+> python -m venv .venv
+> .\.venv\Scripts\Activate.ps1
+> ```
+
+### 2) Install from the local source (editable)
+
 ```bash
 pip install -e .
+```
+
+This installs `ailib` in “editable” mode, so changes you make to the source files are reflected immediately without reinstalling.
+
+---
+
+## 🧪 Running the Library Without Installing
+
+If you prefer not to install the package, you can run scripts against the source tree directly by adding the repo root to `PYTHONPATH`: 
+
+```bash
+export PYTHONPATH="$PWD"
+python -c "import ailib; print(ailib.__version__ if hasattr(ailib, '__version__') else 'no version')"
+```
+
+Or run a script with:
+
+```bash
+PYTHONPATH="$PWD" python scripts/your_script.py
 ```
 
 ---
 
 ## 📖 Quick Start
 
-### 1. Simple Question (`ask`)
-Request a free-text response from the AI.
+### 1) Simple Question (`ask`)
 
 ```python
 import ailib
@@ -35,16 +64,14 @@ summary = ailib.ask("Can you summarize the current code?", context={"files": ["m
 print(f"AI said: {summary}")
 ```
 
-### 2. Structured Response (`ask_json`)
-Ensures the response is parsed as a Python dictionary or list. Supports automatic extraction from markdown code blocks.
+### 2) Structured Response (`ask_json`)
 
 ```python
 data = ailib.ask_json("Extract name and age from text", context="John is 25 years old.")
-print(data['name']) # 'John'
+print(data["name"])  # 'John'
 ```
 
-### 3. Decision Making (`decide`)
-Forces the AI to choose from a predefined set of options.
+### 3) Decision Making (`decide`)
 
 ```python
 action = ailib.decide("What to do next?", options=["retry", "abort", "ignore"])
@@ -56,20 +83,25 @@ action = ailib.decide("What to do next?", options=["retry", "abort", "ignore"])
 
 ### Available Backends
 
-1.  **`StdinBackend` (Default)**: Prints JSON markers to `stderr` and waits for a response on `stdin`. Perfect for agents running in interactive terminals.
-2.  **`FileBackend`**: Uses files (`ailib_request.json` and `ailib_response.json`) for communication. Useful in environments where `stdin` is not reliable.
+1. **`StdinBackend` (default)**
+   - Writes a JSON request to `stderr` and waits for a response on `stdin`.
+   - Ideal for interactive agents that can inspect stderr and respond on stdin.
+
+2. **`FileBackend`**
+   - Uses request/response files (default: `ailib_request.json` / `ailib_response.json`).
+   - Useful when stdin/stdout is not reliable or when an agent polls for new requests.
 
 ### Environment Variables
 
-Configure the library without changing your code:
+Configure the library without changing code:
 
-- `AILIB_BACKEND`: "stdin" or "file".
-- `AILIB_TIMEOUT`: Time in seconds to wait for AI (default 60s).
-- `AILIB_FILE_REQUEST`: Custom path for the request file.
-- `AILIB_FILE_RESPONSE`: Custom path for the response file.
-- `AILIB_LOG_FILE`: Path to the log file.
-- `AILIB_LOG_MAX_BYTES`: Max log size before rotation.
-- `AILIB_LOG_LEVEL`: Log verbosity (INFO, DEBUG, ERROR).
+- `AILIB_BACKEND`: `stdin` or `file`
+- `AILIB_TIMEOUT`: seconds to wait for a response (default `60`)
+- `AILIB_FILE_REQUEST`: path for the request file
+- `AILIB_FILE_RESPONSE`: path for the response file
+- `AILIB_LOG_FILE`: path to the log file
+- `AILIB_LOG_MAX_BYTES`: max size before log rotation
+- `AILIB_LOG_LEVEL`: logging verbosity (`INFO`, `DEBUG`, `ERROR`)
 
 ### Switching Backends at Runtime
 
@@ -88,7 +120,7 @@ with ailib.use_backend(FileBackend()):
 
 ## 🛠️ Protocol for AI Agents
 
-For an AI to respond to scripts, it should be instructed to monitor `stderr` for:
+AI agents should look for request markers on `stderr` to detect when a script is asking for input:
 
 ```json
 <<<AILIB_REQUEST_START>>>
@@ -100,20 +132,20 @@ For an AI to respond to scripts, it should be instructed to monitor `stderr` for
 <<<AILIB_REQUEST_END>>>
 ```
 
-Upon finding these markers, the agent should generate the response and write it to the process's `stdin` (followed by a `\n`).
+When these markers appear, the agent should generate a response and write it back to the process’s `stdin` (followed by a newline).
 
 ---
 
-## 🧪 Testing
+## 🧪 Tests
 
-The library uses `unittest`. To run tests:
+Run the test suite with:
 
 ```bash
-python3 tests/test_ailib_unittest.py
+python -m unittest
 ```
 
 ---
 
 ## 📄 License
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See `LICENSE` for details.
 
