@@ -1,41 +1,52 @@
-# Contribution Guide
+# Contributing
 
-We are happy that you want to contribute to `ailib`! 🚀
-
-## How to contribute
-
-1.  **Fork** the repository.
-2.  Create a **Branch** for your feature (`git checkout -b feature/new-feature`).
-3.  **Commit** your changes (`git commit -m 'Add new feature'`).
-4.  **Push** to the branch (`git push origin feature/new-feature`).
-5.  Open a **Pull Request**.
-
-## Local Development
-
-To set up the development environment:
+## Local setup
 
 ```bash
-# Clone your fork
-git clone https://github.com/your-username/ailib.git
-cd ailib
-
-# Create a virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install in editable mode with test dependencies
-pip install -e .[test]
+pip install -e .[dev]
 ```
 
-## Running Tests
+If you want a narrower install, the optional extras can also be installed independently:
 
-Always run tests before submitting a PR:
 ```bash
-python3 tests/test_ailib_unittest.py
+pip install -e .
+pip install -e .[pydantic]
+pip install -e .[schema]
 ```
 
-## Code Style
+## Test suite
 
-- Follow **PEP 8**.
-- Use Type Hints whenever possible.
-- Add tests for new features.
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python3 -m unittest discover tests
+```
+
+## Build artifacts
+
+Standard release build:
+
+```bash
+python3 -m build
+```
+
+If build dependencies are already installed locally and you want to avoid isolated environment bootstrap:
+
+```bash
+python3 -m build --no-isolation
+```
+
+## CI
+
+A minimal GitHub Actions workflow is provided at `.github/workflows/ci.yml`. When `ailib` is used as a standalone repository root, it runs:
+
+- the unittest suite on Python 3.10, 3.11 and 3.12
+- editable install with `pydantic` and `schema` extras
+- `python -m build` for sdist/wheel validation
+
+If `ailib` remains nested inside another repository, move or mirror that workflow to the parent repository root before expecting GitHub Actions to execute it.
+
+## Scope
+
+- Keep `ailib` independent from application-specific code.
+- Preserve request/response envelopes with `request_id`.
+- Prefer explicit `Client`/backend usage over hidden bootstrap in examples and integration code.
+- Maintain compatibility with the documented legacy payloads only where already supported.
